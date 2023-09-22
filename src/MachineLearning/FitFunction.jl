@@ -3,7 +3,9 @@ using Lux, Optimisers, Plots, Random, Zygote
 rng = Random.default_rng()
 Random.seed!(rng, 42)
 
-y(x) = 1.0/sqrt(2.0 * pi * 0.125^2) * exp(-0.5 * (x - 0.5)^2/0.125^2)
+μ = 0.5
+σ = 0.125
+y(x) = 1.0/sqrt(2.0 * π * σ^2) * exp(-0.5 * (x - μ)^2/σ^2)
 
 optim = Adam()
 
@@ -13,7 +15,7 @@ function loss_fn(model, params, state, data)
   return loss, state, ()
 end
 
-vjp_rule = Lux.Training.ZygoteVJP()
+vjp_rule = Lux.Training.AutoZygote()
 
 x = 0.0:0.005:1.0
 data = (reshape(x, 1, :), reshape(map(y, x), 1, :))
