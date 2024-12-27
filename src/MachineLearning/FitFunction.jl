@@ -21,12 +21,12 @@ x = 0.0:0.005:1.0
 data = (reshape(x, 1, :), reshape(map(y, x), 1, :))
 
 model = Chain(Dense(1 => 128, Lux.tanh), Dense(128 => 1))
-tstate = Lux.Training.TrainState(rng, model, optim)
+ps, st = Lux.setup(rng, model)
+tstate = Lux.Training.TrainState(model, ps, st, optim)
 
 for epoch in 1:5000
-  grads, loss, stats, tstate = Lux.Training.compute_gradients(vjp_rule, loss_fn, data, tstate)
+  _, loss, _, tstate = Lux.Training.single_train_step!(vjp_rule, loss_fn, data, tstate)
   @info epoch=epoch loss=loss
-  tstate = Lux.Training.apply_gradients(tstate, grads)
 end
 
 ypred_m, _ = Lux.apply(model, reshape(x, 1, :), tstate.parameters, tstate.states)
