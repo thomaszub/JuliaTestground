@@ -1,30 +1,32 @@
 using Plots, Statistics
 
-function process_gen(μ, σ)
-  function process(x)
+function process_gen(μ::Function, σ::Function)
+  function process(x, dt)
     ξ = randn(Float64)
-    return μ(x) + σ(x) * ξ
+    return x + μ(x) * dt + σ(x) * ξ * sqrt(dt)
   end
   return process
 end
 
-function gen_series(process, x0, n)
+function gen_series(process, x0, n, dt)
   x = zeros(n)
   x_curr = x0
   for i in 1:n
-    x_curr = process(x_curr)
+    x_curr = process(x_curr, dt)
     x[i] = x_curr
   end
   return x
 end
 
-process_func = process_gen(x -> x, x -> sqrt(0.15 + 0.05 * x^2))
-
+μ = 0.05
+σ = 0.05
+x0 = 10.0
 n = 200
+dt = 0.01
 
-y = gen_series(process_func, 0.0, n)
+process_func = process_gen(x -> μ * x, x -> σ * x)
+y = gen_series(process_func, x0, n, dt)
 
-mean(y)
-std(y)
+plot((1:n)*dt, y)
 
-plot(1:n, y)
+# https://en.wikipedia.org/wiki/Black–Scholes_equation
